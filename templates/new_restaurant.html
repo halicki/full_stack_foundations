@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Create a new restaurant{% endblock %}
+{% block content %}
+<h1>Create a new restaurant</h1>
+<form method="post" action="{{ url_for('new_restaurant') }}">
+  <lable>Name:</lable>
+  <input type="text" name="name" placeholder="Stejk House">
+  <input type="submit">
+  <a href="{{ url_for('restaurants_list') }}">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>New Menu Item</title>
+</head>
+<body>
+  <h1>New Menu Item</h1>
+  <form action="{{ url_for('new_menu_item', restaurant_id=restaurant_id) }}" method="post">
+    <label>       Name:<input type="text" name="name"></label>
+    <label>Description:<input type="text" name="description"></label>
+    <label>      Price:<input type="text" name="price"></label>
+    <label>     Course:
+      <label><input type="radio" name="course" value="Entre">Entre</label>
+      <label><input type="radio" name="course" value="Appetizer">Appetizer</label>
+      <label><input type="radio" name="course" value="Dessert">Dessert</label>
+      <label><input type="radio" name="course" value="Beverage">Beverage</label>
+    </label>
+    <input type="submit">
+    <a href="{{ url_for('restaurant_menu', restaurant_id=restaurant_id) }}">Cancel</a>
+  </form>
+</body>
+</html>

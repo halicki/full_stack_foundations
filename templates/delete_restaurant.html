@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Delete restaurant{% endblock %}
+{% block content %}
+<h1>Delete restaurant</h1>
+<form method="post" action="{{ url_for('delete_restaurant', restaurant_id=restaurant.id) }}">
+  <label>Do you really want to delete restaurant "{{ restaurant.name }}"?</label>
+  <input type="submit" value="Delete">
+  <a href="{{ url_for('restaurants_list') }}">Cancel</a>
+</form>
+{% endblock %}

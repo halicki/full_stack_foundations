@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% block head %}
+  <meta charset="UTF-8">
+  <!--<link href="/static/style.css" rel="stylesheet">-->
+  <title>{% block title %}{% endblock %} - Menu App</title>
+  {% endblock %}
+</head>
+<body>
+  <div id="content">{% block content %}{% endblock %}</div>
+  <div id="footer">
+    {% block footer %}
+    &copy; Copyright 2017 by Arkadiusz Halicki
+    {% endblock %}
+  </div>
+</body>
+</html>

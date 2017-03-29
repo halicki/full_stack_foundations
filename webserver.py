@@ -1,34 +1,112 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import logging
-logging.basicConfig(level=logging.DEBUG)
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import cgi
+import re
+
+# import CRUD Operations from Lesson 1
+from restaurants import Base, Restaurant, MenuItem
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Create session and connect to DB
+engine = create_engine('sqlite:///restaurantmenu.db')
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
 
-class WebServerHandler(BaseHTTPRequestHandler):
+class webServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path.endswith("/hello"):
+        restaurant_edit = re.compile(".*/restaurants/(\d+)/edit")
+
+        # Objective 3 Step 2 - Create /restarants/new page
+        if self.path.endswith("/restaurants/new"):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            output = ""
+            output += "<html><body>"
+            output += "<h1>Make a New Restaurant</h1>"
+            output += "<form method = 'POST' enctype='multipart/form-data' action = '/restaurants/new'>"
+            output += "<input name = 'newRestaurantName' type = 'text' placeholder = 'New Restaurant Name' > "
+            output += "<input type='submit' value='Create'>"
+            output += "</form></body></html>"
+            self.wfile.write(output)
+            return
+
+        match = restaurant_edit.match(self.path)
+        if match:
+            restaurant_id = match.group(1)
+            restaurant = session.query(Restaurant).filter_by(
+                id=restaurant_id).one()
+
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
 
             output = ""
-            output += "<html><body>Hello!</body></html>"
-            self.wfile.write(output.encode())
-            logging.debug(output)
+            output += "<h1>Enter a new name for the restaurant</h1>"
+            output += """
+            <form method='POST' 'multipart/form-data' >
+                <label>New for {old_name}</label>
+                <input type='submit'>
+            </form>
+            """.format(old_name=restaurant.name)
+            self.wfile.write(output)
             return
-        else:
-            self.send_response(404, "File Not Found: {}".format(self.path))
+
+        if self.path.endswith("/restaurants"):
+            restaurants = session.query(Restaurant).all()
+            output = ""
+            # Objective 3 Step 1 - Create a Link to create a new menu item
+            output += "<a href = '/restaurants/new' > Make a New Restaurant Here </a></br></br>"
+
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            output += "<html><body>"
+            for restaurant in restaurants:
+                output += restaurant.name
+                output += "</br>"
+                # Objective 2 -- Add Edit and Delete Links
+                output += "<a href ='/restaurants/{}/edit' >Edit </a> " \
+                          "".format(restaurant.id)
+                output += "</br>"
+                output += "<a href =' #'> Delete</a>"
+                output += "</br></br></br>"
+
+            output += "</body></html>"
+            self.wfile.write(output)
             return
+
+
+    # Objective 3 Step 3- Make POST method
+    def do_POST(self):
+        if self.path.endswith("/restaurants/new"):
+            ctype, pdict = cgi.parse_header(
+                self.headers.getheader('content-type'))
+            if ctype == 'multipart/form-data':
+                fields = cgi.parse_multipart(self.rfile, pdict)
+                messagecontent = fields.get('newRestaurantName')
+
+                # Create new Restaurant Object
+                newRestaurant = Restaurant(name=messagecontent[0])
+                session.add(newRestaurant)
+                session.commit()
+
+                self.send_response(301)
+                self.send_header('Content-type', 'text/html')
+                self.send_header('Location', '/restaurants')
+                self.end_headers()
+        return
 
 
 def main():
     try:
-        port = 8080
-        server = HTTPServer(('', port), WebServerHandler)
-        logging.info("Web server running on port: {}".format(port))
+        server = HTTPServer(('', 8080), webServerHandler)
+        print 'Web server running... Open localhost:8080/restaurants in your browser'
         server.serve_forever()
-
     except KeyboardInterrupt:
-        logging.info("Stopping web server")
+        print '^C received, shutting down server'
         server.socket.close()
 
 if __name__ == '__main__':
